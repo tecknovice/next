@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import remark from "remark";
+import { remark } from "remark";
 import html from "remark-html";
+
 const postsDirectory = path.join(process.cwd(), "posts");
 
 export function getSortedPostsData() {
@@ -26,14 +27,17 @@ export function getSortedPostsData() {
     };
   });
   // Sort posts by date
-  return allPostsData.sort((a, b) => {
-    if (a.date < b.date) {
+  return allPostsData.sort(({ date: a }, { date: b }) => {
+    if (a < b) {
       return 1;
-    } else {
+    } else if (a > b) {
       return -1;
+    } else {
+      return 0;
     }
   });
 }
+
 export function getAllPostIds() {
   const fileNames = fs.readdirSync(postsDirectory);
 
@@ -58,6 +62,7 @@ export function getAllPostIds() {
     };
   });
 }
+
 export async function getPostData(id) {
   const fullPath = path.join(postsDirectory, `${id}.md`);
   const fileContents = fs.readFileSync(fullPath, "utf8");
@@ -71,10 +76,10 @@ export async function getPostData(id) {
     .process(matterResult.content);
   const contentHtml = processedContent.toString();
 
-  // Combine the data with the id
+  // Combine the data with the id and contentHtml
   return {
     id,
-    ...matterResult.data,
     contentHtml,
+    ...matterResult.data,
   };
 }
